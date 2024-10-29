@@ -201,7 +201,7 @@
 <body>
         <div class="content-container">
             <div id="imageResult">
-                <h2>生成图片(建议先用文字模型生成详细的英文提示词prompt)：</h2>
+                <h2>生成的图片(最好先用聊天ai生成英文提示词prompt)：</h2>
                 <img id="generatedImage" src="" >
             </div>
 
@@ -216,13 +216,19 @@
             event.preventDefault();
              const promptInput = document.getElementById("prompt");
             const prompt = promptInput.value;
+            const selectedModel = selectModel.value;
+            if (!input) {
+            alert('请输入你想说的话。');
+            return;
+        }
+        
             
             // 清空输入框内容
             promptInput.value = '';
             const response = await fetch("/generate-image", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: prompt })
+                body: JSON.stringify({ prompt: prompt})
             });
             
             const data = await response.json();
