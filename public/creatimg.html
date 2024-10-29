@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=3.0">
+    <title>生成图片</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600&display=swap">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+            border: none;
+            text-decoration: none;
+            transition: 0.2s linear;
+        }
+    
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    
+        body {
+            background: url('2.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            flex-direction: row;
+        }
+    
+        .sidebar {
+            width: 25%;
+            max-width: 300px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+    
+        .sidebar h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #130f40;
+        }
+    
+        .history-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s linear;
+        }
+    
+        .history-item:hover {
+            background-color: #ddd;
+        }
+    
+        .content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    
+        h1 {
+            text-align: center;
+            color: #130f40;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+    
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            max-width: 400px;
+        }
+    
+        #prompt {
+            flex: 1;
+            margin-right: 10px;
+        }
+    
+        #imageResult {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px); /* 保留底部空间给 #imageForm */
+            padding-top: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            overflow: hidden;
+        }
+    
+        #imageResult h2 {
+            margin: 0;
+            padding: 10px;
+            font-size: 1.5rem;
+        }
+    
+        #generatedImage {
+            flex: 1;
+            width: auto;
+            height: 100%;
+            object-fit: cover; /* 确保图片在容器内保持比例铺满 */
+            display: block;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    
+        #imageForm {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+    
+        button {
+            padding: 12px 20px;
+            background-color: #130f40;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            border-radius: 5rem;
+            cursor: pointer;
+            transition: 0.2s linear;
+        }
+    
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: 100%;
+            }
+    
+            .sidebar {
+                width: 100%;
+                max-width: none;
+                border-right: none;
+                border-bottom: 1px solid #ccc;
+                padding: 10px;
+            }
+    
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    
+        @media (max-width: 450px) {
+            html {
+                font-size: 50%;
+            }
+    
+            .sidebar h2 {
+                font-size: 1.2rem;
+            }
+    
+            #prompt {
+                font-size: 1rem;
+            }
+    
+            button {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+    
+</head>
+<body>
+        <div class="content-container">
+            <div id="imageResult">
+                <h2>生成的图片：</h2>
+                <img id="generatedImage" src="" >
+            </div>
+
+                        <form id="imageForm">
+                <input type="text" id="prompt" placeholder="输入图片描述" required>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("imageForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+             const promptInput = document.getElementById("prompt");
+            const prompt = promptInput.value;
+            
+            // 清空输入框内容
+            promptInput.value = '';
+            const response = await fetch("/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            
+            const data = await response.json();
+            const imageElement = document.getElementById("generatedImage");
+            if (data.imageUrl) {
+                imageElement.src = data.imageUrl;
+                imageElement.style.display = "block";
+            } else {
+                alert("图片生成失败，请稍后重试！");
+            }
+        });
+
+        document.getElementById("prompt").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // 防止默认的表单提交
+                document.getElementById("imageForm").requestSubmit(); // 手动提交表单
+            }
+        });
+    </script>
+</body>
+</html>
